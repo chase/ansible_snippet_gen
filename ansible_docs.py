@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+# This library has been adapted from the 'ansible-doc' script from Ansible.
+# You may find the original here:
+# https://github.com/ansible/ansible/blob/afd8cca3452c0700e154a4f430aa73d97efe162a/bin/ansible-doc
+
+# Original copyright {{{
 # (c) 2012, Jan-Piet Mens <jpmens () gmail.com>
 #
 # This file is part of Ansible
@@ -17,6 +22,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
 #
+# }}}
 
 import os
 import sys
