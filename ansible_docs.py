@@ -26,11 +26,6 @@
 
 import os
 import sys
-import textwrap
-import re
-import optparse
-import datetime
-import subprocess
 from ansible import utils
 from ansible.utils import module_docs
 import ansible.constants as C
@@ -42,141 +37,7 @@ MODULEDIR = C.DEFAULT_MODULE_PATH
 BLACKLIST_EXTS = ('.pyc', '.swp', '.bak', '~', '.rpm')
 IGNORE_FILES = [ "COPYING", "CONTRIBUTING", "LICENSE", "README" ]
 
-_ITALIC = re.compile(r"I\(([^)]+)\)")
-_BOLD   = re.compile(r"B\(([^)]+)\)")
-_MODULE = re.compile(r"M\(([^)]+)\)")
-_URL    = re.compile(r"U\(([^)]+)\)")
-_CONST  = re.compile(r"C\(([^)]+)\)")
-
-def tty_ify(text):
-
-    t = _ITALIC.sub("`" + r"\1" + "'", text)    # I(word) => `word'
-    t = _BOLD.sub("*" + r"\1" + "*", t)         # B(word) => *word*
-    t = _MODULE.sub("[" + r"\1" + "]", t)       # M(word) => [word]
-    t = _URL.sub(r"\1", t)                      # U(word) => word
-    t = _CONST.sub("`" + r"\1" + "'", t)        # C(word) => `word'
-
-    return t
-
-def get_man_text(doc):
-
-    opt_indent="        "
-    text = []
-    text.append("> %s\n" % doc['module'].upper())
-
-    desc = " ".join(doc['description'])
-
-    text.append("%s\n" % textwrap.fill(tty_ify(desc), initial_indent="  ", subsequent_indent="  "))
-
-    if 'option_keys' in doc and len(doc['option_keys']) > 0:
-        text.append("Options (= is mandatory):\n")
-
-    for o in sorted(doc['option_keys']):
-        opt = doc['options'][o]
-
-        if opt.get('required', False):
-            opt_leadin = "="
-        else:
-            opt_leadin = "-"
-
-        text.append("%s %s" % (opt_leadin, o))
-
-        desc = " ".join(opt['description'])
-
-        if 'choices' in opt:
-            choices = ", ".join(str(i) for i in opt['choices'])
-            desc = desc + " (Choices: " + choices + ")"
-        if 'default' in opt:
-            default = str(opt['default'])
-            desc = desc + " [Default: " + default + "]"
-        text.append("%s\n" % textwrap.fill(tty_ify(desc), initial_indent=opt_indent,
-                             subsequent_indent=opt_indent))
-
-    if 'notes' in doc and len(doc['notes']) > 0:
-        notes = " ".join(doc['notes'])
-        text.append("Notes:%s\n" % textwrap.fill(tty_ify(notes), initial_indent="  ",
-                            subsequent_indent=opt_indent))
-
-
-    if 'requirements' in doc and doc['requirements'] is not None and len(doc['requirements']) > 0:
-        req = ", ".join(doc['requirements'])
-        text.append("Requirements:%s\n" % textwrap.fill(tty_ify(req), initial_indent="  ",
-                            subsequent_indent=opt_indent))
-
-    if 'examples' in doc and len(doc['examples']) > 0:
-        text.append("Example%s:\n" % ('' if len(doc['examples']) < 2 else 's'))
-        for ex in doc['examples']:
-            text.append("%s\n" % (ex['code']))
-
-    if 'plainexamples' in doc and doc['plainexamples'] is not None:
-        text.append(doc['plainexamples'])
-    text.append('')
-
-    return "\n".join(text)
-
-
-def get_snippet_text(doc):
-
-    text = []
-    desc = tty_ify(" ".join(doc['short_description']))
-    text.append("- name: %s" % (desc))
-    text.append("  action: %s" % (doc['module']))
-
-    for o in sorted(doc['options'].keys()):
-        opt = doc['options'][o]
-        desc = tty_ify(" ".join(opt['description']))
-
-        if opt.get('required', False):
-            s = o + "="
-        else:
-            s = o
-
-        text.append("      %-20s   # %s" % (s, desc))
-    text.append('')
-
-    return "\n".join(text)
-
-def get_module_list_text(module_list):
-    columns = max(60, int(os.popen('stty size', 'r').read().split()[1]))
-    displace = max(len(x) for x in module_list)
-    linelimit = columns - displace - 5
-    text = []
-    deprecated = []
-    for module in sorted(set(module_list)):
-
-        if module in module_docs.BLACKLIST_MODULES:
-            continue
-
-        filename = utils.plugins.module_finder.find_plugin(module)
-
-        if filename is None:
-            continue
-        if filename.endswith(".ps1"):
-            continue
-        if os.path.isdir(filename):
-            continue
-
-        try:
-            doc, plainexamples = module_docs.get_docstring(filename)
-            desc = tty_ify(doc.get('short_description', '?')).strip()
-            if len(desc) > linelimit:
-                desc = desc[:linelimit] + '...'
-
-            if module.startswith('_'): # Handle deprecated
-                deprecated.append("%-*s %-*.*s" % (displace, module[1:], linelimit, len(desc), desc))
-            else:
-                text.append("%-*s %-*.*s" % (displace, module, linelimit, len(desc), desc))
-        except:
-            traceback.print_exc()
-            sys.stderr.write("ERROR: module %s has a documentation error formatting or is missing documentation\n" % module)
-
-    if len(deprecated) > 0:
-        text.append("\nDEPRECATED:")
-        text.extend(deprecated)
-    return "\n".join(text)
-
 def find_modules(path, module_list):
-
     if os.path.isdir(path):
         for module in os.listdir(path):
             if module.startswith('.'):
@@ -197,67 +58,38 @@ def find_modules(path, module_list):
             module = os.path.splitext(module)[0] # removes the extension
             module_list.append(module)
 
-def main():
+def get_modules(module_path=None):
+    if module_path is None:
+        module_path = MODULEDIR
+    for i in module_path.split(os.pathsep):
+        utils.plugins.module_finder.add_directory(i)
+    paths = utils.plugins.module_finder._get_paths()
+    module_list = []
+    for path in paths:
+        find_modules(path, module_list)
+    return module_list
 
-    p = optparse.OptionParser(
-        version=version("%prog"),
-        usage='usage: %prog [options] [module...]',
-        description='Show Ansible module documentation',
-    )
+def print_paths(finder):
+    ''' Returns a string suitable for printing of the search path '''
 
-    p.add_option("-M", "--module-path",
-            action="store",
-            dest="module_path",
-            default=MODULEDIR,
-            help="Ansible modules/ directory")
-    p.add_option("-l", "--list",
-            action="store_true",
-            default=False,
-            dest='list_dir',
-            help='List available modules')
-    p.add_option("-s", "--snippet",
-            action="store_true",
-            default=False,
-            dest='show_snippet',
-            help='Show playbook snippet for specified module(s)')
-    p.add_option('-v', action='version', help='Show version number and exit')
+    # Uses a list to get the order right
+    ret = []
+    for i in finder._get_paths():
+        if i not in ret:
+            ret.append(i)
+    return os.pathsep.join(ret)
 
-    (options, args) = p.parse_args()
-
-    if options.module_path is not None:
-        for i in options.module_path.split(os.pathsep):
-            utils.plugins.module_finder.add_directory(i)
-
-    if options.list_dir:
-        # list modules
-        paths = utils.plugins.module_finder._get_paths()
-        module_list = []
-        for path in paths:
-            find_modules(path, module_list)
-
-        sys.exit()
-
-    if len(args) == 0:
-        p.print_help()
-
-    def print_paths(finder):
-        ''' Returns a string suitable for printing of the search path '''
-
-        # Uses a list to get the order right
-        ret = []
-        for i in finder._get_paths():
-            if i not in ret:
-                ret.append(i)
-        return os.pathsep.join(ret)
-
-    text = ''
-    for module in args:
-
+def get_docs(module_dir=None, warnings=False):
+    modules = get_modules(module_dir)
+    docs = {}
+    for module in modules:
         filename = utils.plugins.module_finder.find_plugin(module)
         if filename is None:
-            sys.stderr.write("module %s not found in %s\n" % (module, print_paths(utils.plugins.module_finder)))
+            if warnings:
+                sys.stderr.write("WARNING: module %s not found in %s\n" % (module, print_paths(utils.plugins.module_finder)))
             continue
 
+        # This probably isn't necessary, see find_modules line 186
         if any(filename.endswith(x) for x in BLACKLIST_EXTS):
             continue
 
@@ -269,26 +101,10 @@ def main():
             continue
 
         if doc is not None:
-
-            all_keys = []
-            for (k,v) in doc['options'].iteritems():
-                all_keys.append(k)
-            all_keys = sorted(all_keys)
-            doc['option_keys'] = all_keys
-
-            doc['filename']         = filename
-            doc['docuri']           = doc['module'].replace('_', '-')
-            doc['now_date']         = datetime.date.today().strftime('%Y-%m-%d')
-            doc['plainexamples']    = plainexamples
-
-            if options.show_snippet:
-                text += get_snippet_text(doc)
-            else:
-                text += get_man_text(doc)
+            docs[module] = doc
         else:
             # this typically means we couldn't even parse the docstring, not just that the YAML is busted,
             # probably a quoting issue.
             sys.stderr.write("ERROR: module %s missing documentation (or could not parse documentation)\n" % module)
 
-if __name__ == '__main__':
-    main()
+    return docs
