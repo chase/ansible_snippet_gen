@@ -47,40 +47,6 @@ _BOLD   = re.compile(r"B\(([^)]+)\)")
 _MODULE = re.compile(r"M\(([^)]+)\)")
 _URL    = re.compile(r"U\(([^)]+)\)")
 _CONST  = re.compile(r"C\(([^)]+)\)")
-PAGER   = 'less'
-LESS_OPTS = 'FRSX' # -F (quit-if-one-screen) -R (allow raw ansi control chars)
-                   # -S (chop long lines) -X (disable termcap init and de-init)
-
-def pager_print(text):
-    ''' just print text '''
-    print text
-
-def pager_pipe(text, cmd):
-    ''' pipe text through a pager '''
-    if 'LESS' not in os.environ:
-        os.environ['LESS'] = LESS_OPTS
-    try:
-        cmd = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=sys.stdout)
-        cmd.communicate(input=text)
-    except IOError:
-        pass
-    except KeyboardInterrupt:
-        pass
-
-def pager(text):
-    ''' find reasonable way to display text '''
-    # this is a much simpler form of what is in pydoc.py
-    if not sys.stdout.isatty():
-        pager_print(text)
-    elif 'PAGER' in os.environ:
-        if sys.platform == 'win32':
-            pager_print(text)
-        else:
-            pager_pipe(text, os.environ['PAGER'])
-    elif hasattr(os, 'system') and os.system('(less) 2> /dev/null') == 0:
-        pager_pipe(text, 'less')
-    else:
-        pager_print(text)
 
 def tty_ify(text):
 
@@ -269,7 +235,6 @@ def main():
         for path in paths:
             find_modules(path, module_list)
 
-        pager(get_module_list_text(module_list))
         sys.exit()
 
     if len(args) == 0:
@@ -324,7 +289,6 @@ def main():
             # this typically means we couldn't even parse the docstring, not just that the YAML is busted,
             # probably a quoting issue.
             sys.stderr.write("ERROR: module %s missing documentation (or could not parse documentation)\n" % module)
-    pager(text)
 
 if __name__ == '__main__':
     main()
