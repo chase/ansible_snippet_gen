@@ -37,37 +37,39 @@ MODULEDIR = C.DEFAULT_MODULE_PATH
 BLACKLIST_EXTS = ('.pyc', '.swp', '.bak', '~', '.rpm')
 IGNORE_FILES = [ "COPYING", "CONTRIBUTING", "LICENSE", "README" ]
 
-def find_modules(path, module_list):
-    if os.path.isdir(path):
-        for module in os.listdir(path):
-            if module.startswith('.'):
+def find_modules(path):
+    if not os.path.isdir(path):
+        yield
+    for module in os.listdir(path):
+        if module.startswith('.'):
+            continue
+        elif os.path.isdir(module):
+            for module in find_modules(module):
+                yield module
+        elif any(module.endswith(x) for x in BLACKLIST_EXTS):
+            continue
+        elif module.startswith('__'):
+            continue
+        elif module in IGNORE_FILES:
+            continue
+        elif module.startswith('_'):
+            fullpath = '/'.join([path,module])
+            if os.path.islink(fullpath): # avoids aliases
                 continue
-            elif os.path.isdir(module):
-                find_modules(module, module_list)
-            elif any(module.endswith(x) for x in BLACKLIST_EXTS):
-                continue
-            elif module.startswith('__'):
-                continue
-            elif module in IGNORE_FILES:
-                continue
-            elif module.startswith('_'):
-                fullpath = '/'.join([path,module])
-                if os.path.islink(fullpath): # avoids aliases
-                    continue
 
-            module = os.path.splitext(module)[0] # removes the extension
-            module_list.append(module)
+        module = os.path.splitext(module)[0] # removes the extension
+        yield module
 
 def get_modules(module_path=None):
+    # Because Python doesn't like variables as defaults
     if module_path is None:
         module_path = MODULEDIR
     for i in module_path.split(os.pathsep):
         utils.plugins.module_finder.add_directory(i)
     paths = utils.plugins.module_finder._get_paths()
-    module_list = []
     for path in paths:
-        find_modules(path, module_list)
-    return module_list
+        for module in find_modules(path):
+            yield module
 
 def print_paths(finder):
     ''' Returns a string suitable for printing of the search path '''
@@ -80,9 +82,7 @@ def print_paths(finder):
     return os.pathsep.join(ret)
 
 def get_docs(module_dir=None, warnings=False):
-    modules = get_modules(module_dir)
-    docs = {}
-    for module in modules:
+    for module in get_modules(module_dir):
         filename = utils.plugins.module_finder.find_plugin(module)
         if filename is None:
             if warnings:
@@ -101,10 +101,8 @@ def get_docs(module_dir=None, warnings=False):
             continue
 
         if doc is not None:
-            docs[module] = doc
+            yield module, doc
         else:
             # this typically means we couldn't even parse the docstring, not just that the YAML is busted,
             # probably a quoting issue.
             sys.stderr.write("ERROR: module %s missing documentation (or could not parse documentation)\n" % module)
-
-    return docs
