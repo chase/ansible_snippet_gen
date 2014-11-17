@@ -1,0 +1,21 @@
+{#- stop counter #}
+{% set stop = cycler(*range(1,1+arguments|count)|list) %}
+snippet {{module}} w
+{# handles free_form exception #}
+{% include 'free_form.j2' %}
+
+{# list required arguments first #}
+{% for arg_name, arg_value in arguments.iteritems() if arg_value.required  %}
+{% include 'module_argument.j2' %}
+{% endfor %}
+{# encase optional arguments in a snippet block #}
+{% set offset = 1 %}
+
+{%- for arg_name, arg_value in arguments.iteritems() if not arg_value.required  %}
+{% if loop.first %}
+${ {{- stop.current|int}}:
+{%- endif %}
+{% include 'module_argument.j2' %}
+{% endfor -%}}
+endsnippet
+

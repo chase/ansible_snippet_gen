@@ -1,0 +1,98 @@
+#!/usr/bin/env python2
+
+# (c) 2014, Chase Colman <chase@colman.io>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# ansible-vim-snippet-generator is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+VERSION = '0.2.0'
+
+import os
+import optparse
+import ansible_docs
+from itertools import groupby
+from jinja2 import Environment, FileSystemLoader
+
+def main():
+    p = optparse.OptionParser(
+        version="%prog "+VERSION,
+        usage='Usage: %prog [options]',
+        description='Creates Ansible module snippets for Vim SnipMate/UltiSnips'
+    )
+    p.add_option("-f", "--format",
+            action="store",
+            type="choice",
+            choices=["U","S","B","u","s","b"],
+            default="B",
+            dest="format",
+            help="Write snippets for (U)ltiSnips, (S)nipMate, or (B)oth")
+    p.add_option("-v", "--verbose",
+            action="store_true",
+            dest="verbose",
+            help="Show warnings")
+    p.add_option("-M", "--module-path",
+            action="store",
+            dest="module_path",
+            default=ansible_docs.MODULEDIR,
+            help="Add a Ansible modules directory")
+
+    (options, args) = p.parse_args()
+
+    if len(args) == 0:
+        write_format = options.format.lower()
+        in_ultisnips = write_format in ['u','b']
+        in_snipmate = write_format in ['s','b']
+
+        # Create Jinja2 Environment
+        env = Environment(loader=FileSystemLoader('templates'))
+        env.trim_blocks = True
+        env.lstrip_blocks = True
+        env.keep_trailing_newline = True
+
+        # Grab all the documents as a key-value generator
+        docs = ansible_docs.get_docs(options.module_path, options.verbose)
+
+        if in_ultisnips:
+            if not os.path.exists('UltiSnips'):
+                os.mkdir('UltiSnips')
+            ultisnips = open('UltiSnips/ansible.snippets', 'w')
+            ultisnips_template = env.get_template('ultisnips.j2')
+            # Add the UltiSnips priority header
+            ultisnips.write("priority -50\n\n")
+
+        if in_snipmate:
+            if not os.path.exists('snippets'):
+                os.mkdir('snippets')
+            snipmate = open('snippets/ansible.snippets', 'w')
+            snipmate_template = env.get_template('snipmate.j2')
+
+        for module, doc in docs:
+            if options.verbose:
+                print("Processing: %s"%module)
+            if 'options' not in doc or len(doc['options'])==0:
+                if options.verbose:
+                    print("WARNING: %s has no options, skipping"%module)
+                continue
+            if in_ultisnips:
+                ultisnips.write(ultisnips_template.render(module=module, arguments=doc['options']))
+            if in_snipmate:
+                snipmate.write(snipmate_template.render(module=module, arguments=doc['options']))
+
+        if in_ultisnips:
+             ultisnips.close()
+        if in_snipmate:
+             snipmate.close()
+
+
+if __name__ == '__main__':
+    main()

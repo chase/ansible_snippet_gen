@@ -1,0 +1,2 @@
+{% set arg_default = ': %s' % arg_value.default if default in arg_value %}
+	{{ arg_name }}: ${ {{- stop.next()|int + offset|default(0) }}{{ arg_default -}} }
