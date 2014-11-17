@@ -89,10 +89,6 @@ def get_docs(module_dir=None, warnings=False):
                 sys.stderr.write("WARNING: module %s not found in %s\n" % (module, print_paths(utils.plugins.module_finder)))
             continue
 
-        # This probably isn't necessary, see find_modules line 186
-        if any(filename.endswith(x) for x in BLACKLIST_EXTS):
-            continue
-
         try:
             doc, plainexamples = module_docs.get_docstring(filename)
         except:
