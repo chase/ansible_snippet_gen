@@ -1,4 +1,4 @@
-ansible-vim-snippet-generator
+Ansible Snippet Generator for Vim
 =============================
 
 Generates some useful Ansible module snippets for SnipMate/UltiSnips.
