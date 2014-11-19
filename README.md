@@ -3,8 +3,16 @@ ansible-vim-snippet-generator
 
 Generates some useful Ansible module snippets for SnipMate/UltiSnips.
 
+## Installation
+If your system default is Python 2:
+`./setup.py install`
+
+If your system default is Python 3 and you have Python 2.7 installed:
+`python2 setup.py install`
+
+## Usage
 ```
-usage: snippet_gen [-h] [-v] [-f {U,S,B,u,s,b}] [--verbose] [-M MODULE_PATH]
+usage: ansible_snippet_gen [-h] [-v] [-f {U,S,B,u,s,b}] [--verbose] [-M MODULE_PATH]
 
 Generate Ansible module snippets for Vim SnipMate/UltiSnips
 

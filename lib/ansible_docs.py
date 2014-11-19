@@ -82,6 +82,7 @@ def print_paths(finder):
     return os.pathsep.join(ret)
 
 def get_docs(module_dir=None, warnings=False):
+    requires_others = {}
     for module in get_modules(module_dir):
         filename = utils.plugins.module_finder.find_plugin(module)
         if filename is None:
@@ -97,8 +98,29 @@ def get_docs(module_dir=None, warnings=False):
             continue
 
         if doc is not None:
-            yield module, doc
+            if module == "file":
+                file_module_options = doc['options']
+                yield module, doc
+            if 'options' in doc:
+                # Minor inconsistency fix
+                if 'free-form' in doc['options']:
+                    doc['options']['free_form'] = doc['options'].pop('free-form')
+                # Others actually means file options
+                if 'others' in doc['options']:
+                    requires_others[module] = doc
+                else:
+                    yield module, doc
         else:
             # this typically means we couldn't even parse the docstring, not just that the YAML is busted,
             # probably a quoting issue.
             sys.stderr.write("ERROR: module %s missing documentation (or could not parse documentation)\n" % module)
+
+    # Merge file options into modules that require 'others'
+    for module, doc in requires_others.iteritems():
+        # Remove others
+        doc['options'].pop('others')
+        for key, value in file_module_options.iteritems():
+            if not key in doc:
+                doc['options'][key] = value
+
+        yield module, doc

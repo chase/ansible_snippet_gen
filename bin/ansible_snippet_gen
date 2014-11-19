@@ -1,6 +1,8 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 # (c) 2014, Chase Colman <chase@colman.io>
+#
+# This file is part of ansible-yaml-snippet-generator
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,18 +16,17 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-VERSION = '1.0.0'
 
 import os
 import argparse
+from ansible_snippet_gen import __version__
 import ansible_docs
 from itertools import groupby
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, PackageLoader
 
 def main():
     p = argparse.ArgumentParser(
-        version="%(prog)s "+VERSION,
+        version="%(prog)s "+__version__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="""Generate Ansible module snippets for Vim SnipMate/UltiSnips
 
@@ -57,7 +58,7 @@ Defaults to generating both snippet formats."""
     in_snipmate = write_format in ['s','b']
 
     # Create Jinja2 Environment
-    env = Environment(loader=FileSystemLoader('templates'))
+    env = Environment(loader=PackageLoader('ansible_snippet_gen','templates'))
     env.trim_blocks = True
     env.lstrip_blocks = True
     env.keep_trailing_newline = True
