@@ -1,19 +1,23 @@
 ansible-vim-snippet-generator
 =============================
 
-Generates Ansible module snippets for SnipMate/UltiSnips
+Generates some useful Ansible module snippets for SnipMate/UltiSnips.
 
 ```
-Usage: snippet_gen [options]
+usage: snippet_gen [-h] [-v] [-f {U,S,B,u,s,b}] [--verbose] [-M MODULE_PATH]
 
-Creates Ansible module snippets for Vim SnipMate/UltiSnips
+Generate Ansible module snippets for Vim SnipMate/UltiSnips
 
-Options:
-  --version             show program's version number and exit
+UltiSnips snippets are written to 'UltiSnips/ansible.snippets'
+SnipMate snippets are written to 'snippets/ansible.snippets'
+
+Defaults to generating both snippet formats.
+
+optional arguments:
   -h, --help            show this help message and exit
-  -f FORMAT, --format=FORMAT
-                        Write snippets for (U)ltiSnips, (S)nipMate, or (B)oth
-  -v, --verbose         Show warnings
-  -M MODULE_PATH, --module-path=MODULE_PATH
-                        Add a Ansible modules directory
+  -v, --version         show program's version number and exit
+  -f {U,S,B,u,s,b}      output choices: (U)ltiSnips, (S)nipMate, or (B)oth
+  --verbose             show warnings
+  -M MODULE_PATH, --module-path MODULE_PATH
+                        add a Ansible modules directory
 ```
