@@ -5,10 +5,10 @@ Generates some useful Ansible module snippets for SnipMate/UltiSnips.
 
 ## Installation
 If your system default is Python 2:
-`./setup.py install`
+`[sudo] ./setup.py install`
 
 If your system default is Python 3 and you have Python 2.7 installed:
-`python2 setup.py install`
+`[sudo] python2 setup.py install`
 
 ## Usage
 ```
