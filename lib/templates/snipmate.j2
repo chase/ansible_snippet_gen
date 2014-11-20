@@ -5,7 +5,7 @@ snippet {{module}}
 	{%+ include 'free_form.j2' %}
 
 {# list required arguments first #}
-{% for arg_name, arg_value in arguments.iteritems() if arg_value.required  %}
+{% for arg_name, arg_value in arguments.iteritems() if arg_value.required and arg_name != 'free_form' %}
 	{%+ include 'module_argument.j2' %}
 {% endfor %}
 {# list optional arguments last #}

@@ -1,5 +1,5 @@
-{% if 'free_form' in arguments %}
+{%- if 'free_form' in arguments %}
 {{ module }}: ${ {{- stop.next()|int -}} } >
-{% else %}
+{%- else %}
 {{ module }}: >
 {%- endif %}
