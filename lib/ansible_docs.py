@@ -61,6 +61,7 @@ def find_modules(path):
         yield module
 
 def get_modules(module_path=None):
+    bag = []
     # Because Python doesn't like variables as defaults
     if module_path is None:
         module_path = MODULEDIR
@@ -69,6 +70,9 @@ def get_modules(module_path=None):
     paths = utils.plugins.module_finder._get_paths()
     for path in paths:
         for module in find_modules(path):
+            if module in bag:
+                continue
+            bag.append(module)
             yield module
 
 def print_paths(finder):
