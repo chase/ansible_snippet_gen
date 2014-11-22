@@ -17,8 +17,11 @@ snippet {{module}}
  {%+ include 'module_argument_short.j2' %}
 {% else %}
 	{%+ include 'module_argument_long.j2' %}
-{% endif %}
 
+{% endif %}
 {% endfor %}
+{% if short %}
+
+{% endif %}
 
 
