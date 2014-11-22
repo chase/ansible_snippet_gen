@@ -35,18 +35,18 @@ SnipMate snippets are written to 'snippets/ansible.snippets'
 
 Defaults to generating SnipMate snippets."""
     )
-    p.add_argument("-w", "--wrap-after",
+    p.add_argument("-w", "--wrap",
             action="store",
-            dest="wrap_after",
+            dest="num",
             default=4,
             type=int,
-            help="wrap module options after # options, default #=4")
+            help="wrap module options if over NUM options, default is 4")
     p.add_argument("-f",
             action="store",
             choices=["U","S","B","u","s","b"],
             default="S",
             dest="format",
-            help="output choices: (U)ltiSnips, (S)nipMate, or (B)oth formats")
+            help="output format: (U)ltiSnips, (S)nipMate, or (B)oth")
     p.add_argument("--verbose",
             action="store_true",
             dest="verbose",
@@ -85,7 +85,7 @@ Defaults to generating SnipMate snippets."""
         snipmate = open('snippets/ansible.snippets', 'w')
         snipmate_template = env.get_template('snipmate.j2')
 
-    wrap_after = options.wrap_after
+    wrap_after = options.num
     verbose = options.verbose
     for module, doc in docs:
         if verbose:
