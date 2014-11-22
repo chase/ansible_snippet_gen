@@ -1,0 +1,4 @@
+{% set arg_default = arg_value.default|string|lower %}
+{% set arg_snip = ':#%s' % arg_value.choices|join('|') if arg_value.choices
+else ':%s' % arg_default if arg_default and arg_default != 'none'
+else ':# REQUIRED' if arg_value.required %}{{ arg_name }}=${ {{- stop.next()|int }}{{ arg_snip -}} }

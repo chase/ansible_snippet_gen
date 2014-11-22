@@ -21,7 +21,7 @@ import os
 import argparse
 from ansible_snippet_gen import __version__
 import ansible_docs
-from itertools import groupby
+from itertools import count as counter
 from jinja2 import Environment, PackageLoader
 
 def main():
@@ -35,6 +35,12 @@ SnipMate snippets are written to 'snippets/ansible.snippets'
 
 Defaults to generating both snippet formats."""
     )
+    p.add_argument("-w", "--wrap-after",
+            action="store",
+            dest="wrap_after",
+            default=4,
+            type=int,
+            help="wrap module options after # options, default #=4")
     p.add_argument("-f",
             action="store",
             choices=["U","S","B","u","s","b"],
@@ -61,7 +67,6 @@ Defaults to generating both snippet formats."""
     env = Environment(loader=PackageLoader('ansible_snippet_gen','templates'))
     env.trim_blocks = True
     env.lstrip_blocks = True
-    env.keep_trailing_newline = True
 
     # Grab all the documents as a key-value generator
     docs = ansible_docs.get_docs(options.module_path, options.verbose)
@@ -80,17 +85,23 @@ Defaults to generating both snippet formats."""
         snipmate = open('snippets/ansible.snippets', 'w')
         snipmate_template = env.get_template('snipmate.j2')
 
+    wrap_after = options.wrap_after
+    verbose = options.verbose
     for module, doc in docs:
-        if options.verbose:
+        if verbose:
             print("Processing: %s"%module)
         if 'options' not in doc or len(doc['options'])==0:
-            if options.verbose:
+            if verbose:
                 print("WARNING: %s has no options, skipping"%module)
             continue
+        content = { 'module': module,
+                'arguments': doc['options'],
+                'short': len(doc['options']) <= wrap_after,
+                'stop': counter(1) }
         if in_ultisnips:
-            ultisnips.write(ultisnips_template.render(module=module, arguments=doc['options']))
+            ultisnips.write(ultisnips_template.render(**content))
         if in_snipmate:
-            snipmate.write(snipmate_template.render(module=module, arguments=doc['options']))
+            snipmate.write(snipmate_template.render(**content))
 
     if in_ultisnips:
          ultisnips.close()

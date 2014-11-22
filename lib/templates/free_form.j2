@@ -1,5 +1,4 @@
-{%- if 'free_form' in arguments %}
-{{ module }}: ${ {{- stop.next()|int -}} } >
-{%- else %}
-{{ module }}: >
-{%- endif %}
+{{ module }}:{%- if 'free_form' in arguments %}
+ ${ {{- stop.next()|int -}} }
+{%- endif %}{% if not short %} >
+{% endif %}
