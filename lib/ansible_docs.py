@@ -105,7 +105,7 @@ def get_docs(module_dir=None, warnings=False):
             if module == "file":
                 file_module_options = doc['options']
                 yield module, doc
-            if 'options' in doc:
+            elif 'options' in doc:
                 # Minor inconsistency fix
                 if 'free-form' in doc['options']:
                     doc['options']['free_form'] = doc['options'].pop('free-form')
