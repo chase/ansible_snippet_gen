@@ -33,7 +33,7 @@ def main():
 UltiSnips snippets are written to 'UltiSnips/ansible.snippets'
 SnipMate snippets are written to 'snippets/ansible.snippets'
 
-Defaults to generating both snippet formats."""
+Defaults to generating SnipMate snippets."""
     )
     p.add_argument("-w", "--wrap-after",
             action="store",
@@ -44,9 +44,9 @@ Defaults to generating both snippet formats."""
     p.add_argument("-f",
             action="store",
             choices=["U","S","B","u","s","b"],
-            default="B",
+            default="S",
             dest="format",
-            help="output choices: (U)ltiSnips, (S)nipMate, or (B)oth")
+            help="output choices: (U)ltiSnips, (S)nipMate, or (B)oth formats")
     p.add_argument("--verbose",
             action="store_true",
             dest="verbose",
