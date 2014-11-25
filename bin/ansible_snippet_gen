@@ -19,8 +19,7 @@
 
 import os
 import argparse
-from ansible_snippet_gen import __version__
-import ansible_docs
+from ansible_snippet_gen import __version__, ansible_docs
 from itertools import count as counter
 from jinja2 import Environment, PackageLoader
 

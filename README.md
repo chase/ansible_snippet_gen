@@ -3,11 +3,16 @@ Ansible Snippet Generator for Vim
 
 Generates some useful Ansible module snippets for SnipMate/UltiSnips.
 
+## Prerequisites
+**Python 2.7** 
+**Ansible >= 1.7** *Note: Make sure you install this through your package manager and not pip, as the standard module path may not be set.*
+
 ## Installation
 If your system default is Python 2:
 `[sudo] ./setup.py install`
+*Note: If you don't know you don't know, try running *`python --version`
 
-If your system default is Python 3 and you have Python 2.7 installed:
+If your system default is Python 3 but you have Python 2.7 installed as well:
 `[sudo] python2 setup.py install`
 
 ## Usage

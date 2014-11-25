@@ -13,13 +13,15 @@ except ImportError:
     sys.exit(1)
 
 setup(name='ansible_snippet_gen',
-        version=__version__,
-        description="Generates some useful Ansible module snippets for SnipMate/UltiSnips",
-        author=__author__,
-        author_email="chase@colman.io",
-        url="https://github.com/chase/ansible-vim-snippet-generator",
-        license='GPLv3',
-        install_requires=['ansible'],
-        package_dir={'': 'lib'},
-        scripts=[ 'bin/ansible_snippet_gen' ],
-        data_files=[])
+    version=__version__,
+    description="Generates some useful Ansible module snippets for SnipMate/UltiSnips",
+    author=__author__,
+    author_email="chase@colman.io",
+    url="https://github.com/chase/ansible-vim-snippet-generator",
+    license='GPLv3',
+    install_requires=['ansible'],
+    packages=['ansible_snippet_gen'],
+    package_data={'': ['templates/*.j2']},
+    include_package_data=True,
+    scripts=['bin/ansible_snippet_gen']
+)

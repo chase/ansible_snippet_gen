@@ -65,6 +65,7 @@ def get_modules(module_path=None):
     # Because Python doesn't like variables as defaults
     if module_path is None:
         module_path = MODULEDIR
+    print(MODULEDIR)
     for i in module_path.split(os.pathsep):
         utils.plugins.module_finder.add_directory(i)
     paths = utils.plugins.module_finder._get_paths()
